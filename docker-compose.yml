@@ -25,6 +25,8 @@ services:
       # Automaticly redirect from http to https
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      # Listen on port 3306 (MySQL)
+      # - --entrypoints.mysql.address=:3306
       # Enable LetsEncrypt
       - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
