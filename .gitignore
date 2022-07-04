@@ -1,4 +1,4 @@
 .env
-./logs/**
 docker-compose.yml
+./logs
 ./letsencrypt/**
