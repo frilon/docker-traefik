@@ -27,11 +27,22 @@ services:
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
       # Listen on port 3306 (MySQL)
       # - --entrypoints.mysql.address=:3306
+
       # Enable LetsEncrypt
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
+      # Use staging server for test cases
+      #- --certificatesresolvers.letsencrypt.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+      # LetsEncrypt global configuration
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
+      # LetsEncrypt HTTP-Challenge
+      #- --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+      #- --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      # LetsEncrypt DNS-Challenge via cloudflare
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.dnsChallenge.provider=cloudflare
+      - --certificatesresolvers.letsencrypt.acme.dnsChallenge.delayBeforeCheck=60
+      - --entrypoints.websecure.http.tls.domains[0].main=${HOSTNAME}
+      - --entrypoints.websecure.http.tls.domains[0].sans=*.${HOSTNAME}
       # Enable Access Log
       - --accesslog.filepath=/var/log/www/access.log
     ports:
