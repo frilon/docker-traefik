@@ -62,8 +62,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.traefik_https.entrypoints=traefik_https
-      - traefik.http.routers.traefik_https.rule=PathPrefix(`/api`) || PathPrefix(`/dashboard`)
       - traefik.http.routers.traefik_https.rule=Host(`${HOSTNAME}`)
+      - traefik.http.routers.traefik_https.rule=PathPrefix(`/api`) || PathPrefix(`/dashboard`)
       - traefik.http.routers.traefik_https.tls=true
       - traefik.http.routers.traefik_https.tls.certResolver=letsencrypt
       - traefik.http.routers.traefik_https.service=api@internal
