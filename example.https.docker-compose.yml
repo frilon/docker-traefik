@@ -34,15 +34,19 @@ services:
       # LetsEncrypt global configuration
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
       - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
-      # LetsEncrypt HTTP-Challenge
+     # Use EITHER
+     # LetsEncrypt HTTP-Challenge
       #- --certificatesresolvers.letsencrypt.acme.httpchallenge=true
       #- --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      ######
+      # OR
       # LetsEncrypt DNS-Challenge via cloudflare
       - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
       - --certificatesresolvers.letsencrypt.acme.dnsChallenge.provider=cloudflare
       - --certificatesresolvers.letsencrypt.acme.dnsChallenge.delayBeforeCheck=60
-      - --entrypoints.websecure.http.tls.domains[0].main=${HOSTNAME}
-      - --entrypoints.websecure.http.tls.domains[0].sans=*.${HOSTNAME}
+      ######
+      - --entrypoints.websecure.http.tls.domains[0].main=${CUSTOM_HOSTNAME}
+      - --entrypoints.websecure.http.tls.domains[0].sans=*.${CUSTOM_HOSTNAME}
       # Enable Access Log
       - --accesslog.filepath=/var/log/www/access.log
     ports:
@@ -62,7 +66,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.traefik_https.entrypoints=traefik_https
-      - traefik.http.routers.traefik_https.rule=Host(`${HOSTNAME}`)
+      - traefik.http.routers.traefik_https.rule=Host(`${CUSTOM_HOSTNAME}`)
       - traefik.http.routers.traefik_https.rule=PathPrefix(`/api`) || PathPrefix(`/dashboard`)
       - traefik.http.routers.traefik_https.tls=true
       - traefik.http.routers.traefik_https.tls.certResolver=letsencrypt
