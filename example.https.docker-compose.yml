@@ -3,7 +3,7 @@ version: "3"
 services:
   traefik:
     # The official v2 Traefik docker image
-    image: traefik:v2.7
+    image: traefik:latest
     container_name: traefik
     restart: always
     # env_file: env
