@@ -9,7 +9,10 @@ services:
     # env_file: env
     command:
       - --global.sendAnonymousUsage=false
-      # Enable Dashboard
+      # By default, the level is set to ERROR. Alternative logging levels are 
+      # DEBUG, PANIC, FATAL, ERROR, WARN, and INFO.
+      # - --log.level=DEBUG
+      # Enable Dashboard via /dashboard/
       - --api.insecure=false
       - --api.dashboard=true
       - --api.debug=true
@@ -67,15 +70,15 @@ services:
       - traefik.enable=true
       - traefik.http.routers.traefik_https.entrypoints=traefik_https
       - traefik.http.routers.traefik_https.rule=Host(`${CUSTOM_HOSTNAME}`)
-      - traefik.http.routers.traefik_https.rule=PathPrefix(`/api`) || PathPrefix(`/dashboard`)
+      - traefik.http.routers.traefik_https.rule=Host(`${CUSTOM_HOSTNAME}`) && PathPrefix(`/api`) || PathPrefix(`/dashboard`)
       - traefik.http.routers.traefik_https.tls=true
       - traefik.http.routers.traefik_https.tls.certResolver=letsencrypt
       - traefik.http.routers.traefik_https.service=api@internal
-      # Username: nadmin
+      # Username: admin
       # Password: EnterPasswordHere
       # Encrypt Password via 'echo $(htpasswd -nB nadmin) | sed -e s/\\$/\\$\\$/g'
       #- traefik.http.routers.traefik_https.middlewares=traefik-auth
-      #- traefik.http.middlewares.traefik-auth.basicauth.users=nadmin:EnterEncryptedPasswordHere
+      #- traefik.http.middlewares.traefik-auth.basicauth.users=admin:EnterEncryptedPasswordHere
     networks:
       - traefik_ext
 
