@@ -3,11 +3,14 @@ version: "3"
 services:
   traefik:
     # The official v2 Traefik docker image
-    image: traefik:v2.7
+    image: traefik:latest
     container_name: traefik
     restart: always
     # env_file: env
     command:
+      # By default, the level is set to ERROR. Alternative logging levels are 
+      # DEBUG, PANIC, FATAL, ERROR, WARN, and INFO.
+      # - --log.level=DEBUG
       - --global.sendAnonymousUsage=false
       # Enable Dashboard
       - --api.insecure=true
@@ -17,7 +20,7 @@ services:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       # Listen on port 8080 (traefik Dashboard)
-      # - --entrypoints.traefik_http.address=:8080
+      - --entrypoints.traefik_http.address=:8080
       # Listen on port 80 (http)
       - --entrypoints.web.address=:80
       # Listen on port 443 (https)
@@ -48,14 +51,14 @@ services:
       - ./letsencrypt:/letsencrypt
       # Enable Access Log
       - ./logs/:/var/log/www/
-    #labels:
-    #- traefik.enable=true
-    #- traefik.http.routers.traefik_http.entrypoints=traefik_http
-    #- traefik.http.routers.traefik_http.rule=PathPrefix(`/api`) || PathPrefix(`/dashboard`)
-    #- traefik.http.routers.traefik_http.rule=Host(`${HOSTNAME}`)
+    labels:
+    - traefik.enable=true
+    - traefik.http.routers.traefik_http.entrypoints=traefik_http
+    - traefik.http.routers.traefik_http.rule=Host(`${HOSTNAME}`)
+    - traefik.http.routers.traefik_http.rule=Host(`${HOSTNAME}`) && PathPrefix(`/api`) || PathPrefix(`/dashboard`)
+    - traefik.http.routers.traefik_http.service=api@internal
     #- traefik.http.routers.traefik_http.tls=true
     #- traefik.http.routers.traefik_http.tls.certResolver=letsencrypt
-    #- traefik.http.routers.traefik_http.service=api@internal
     # Username: nadmin
     # Password: EnterPasswordHere
     # Encrypt Password via 'echo $(htpasswd -nB nadmin) | sed -e s/\\$/\\$\\$/g'
