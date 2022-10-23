@@ -1,0 +1,6 @@
+services:
+  traefik:
+    labels:
+      - traefik.http.routers.traefik_http.entrypoints=traefik_http
+      - traefik.http.routers.traefik_http.rule=Host(`${CUSTOM_HOSTNAME}`) && PathPrefix(`/api`) || PathPrefix(`/dashboard`)
+      - traefik.http.routers.traefik_http.service=api@internal
