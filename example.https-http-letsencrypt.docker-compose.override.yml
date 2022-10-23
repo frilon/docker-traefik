@@ -54,8 +54,3 @@ services:
       - traefik.http.routers.traefik_https.service=api@internal
       - traefik.http.routers.traefik_https.tls=true
       - traefik.http.routers.traefik_https.tls.certResolver=letsencrypt
-      # Username: nadmin
-      # Password: EnterPasswordHere
-      # Encrypt Password via 'echo $(htpasswd -nB nadmin) | sed -e s/\\$/\\$\\$/g'
-      #- traefik.http.routers.traefik_httpss.middlewares=traefik-auth
-      #- traefik.http.middlewares.traefik-auth.basicauth.users=nadmin:EnterEncryptedPasswordHere
