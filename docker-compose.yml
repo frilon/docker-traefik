@@ -1,0 +1,60 @@
+version: "3"
+
+services:
+  traefik:
+    # The official v2 Traefik docker image
+    image: traefik:latest
+    container_name: traefik
+    restart: always
+    env_file: .env
+    command:
+      # By default, the level is set to ERROR. Alternative logging levels are 
+      # DEBUG, PANIC, FATAL, ERROR, WARN, and INFO.
+      - --log.level=ERROR
+      - --global.sendAnonymousUsage=false
+      # Enable Dashboard
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --api.debug=true
+      # We are using Docker
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      # (Optional) Set default hostname if not given explicitly
+      - --providers.docker.defaultRule=Host("${CUSTOM_HOSTNAME}")
+      # Listen on port 80 (http)
+      - --entrypoints.web.address=:80
+      # Listen on port 8080 (traefik Dashboard)
+      - --entrypoints.traefik_http.address=:8080
+      - --entrypoints.web.http.tls.domains[0].main=${CUSTOM_HOSTNAME}
+      # Enable Access Log
+      - --accesslog.filepath=/var/log/www/access.log
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The HTTPS port
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Enable Access Log
+      - ./logs/:/var/log/www/
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_ext
+
+      - traefik.http.routers.traefik_http.entrypoints=traefik_http
+      - traefik.http.routers.traefik_http.rule=Host(`${CUSTOM_HOSTNAME}`) && PathPrefix(`/api`) || PathPrefix(`/dashboard`)
+      - traefik.http.routers.traefik_http.service=api@internal
+      # Username: nadmin
+      # Password: EnterPasswordHere
+      # Encrypt Password via 'echo $(htpasswd -nB nadmin) | sed -e s/\\$/\\$\\$/g'
+      #- traefik.http.routers.traefik_https.middlewares=traefik-auth
+      #- traefik.http.middlewares.traefik-auth.basicauth.users=nadmin:EnterEncryptedPasswordHere
+    networks:
+      - traefik_ext
+
+networks:
+  traefik_ext:
+    external: true
