@@ -5,14 +5,15 @@ services:
     image: traefik/whoami
     container_name: whoami
     restart: unless-stopped
-    environment:
-      - CUSTOM_HOSTNAME: "domain.tld"
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_ext
       #- traefik.http.routers.whoami.entrypoints=web
       - traefik.http.routers.whoami.entrypoints=websecure
-      - traefik.http.routers.whoami.rule=Host(`whoami.${CUSTOM_HOSTNAME}`)
+      
+      # -------------> CHANGE DOMAIN NAME HERE <-------------
+      - traefik.http.routers.whoami.rule=Host(`whoami.domain.tld`)
+      # <--------------------------------------------------->
       - traefik.http.routers.whoami.tls=true
     networks:
       - traefik_ext
