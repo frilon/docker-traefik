@@ -1,0 +1,43 @@
+tls:
+  #certificates:
+  #  - certFile: /certs/xyzcdn.xyz.crt
+  #    keyFile: /certs/xyzcdn.xyz.key
+  #  - certFile: /certs/geschke.net.crt
+  #    keyFile: /certs/geschke.net.key
+  options:
+    default:
+      minVersion: VersionTLS12
+      sniStrict : true
+      cipherSuites:
+        - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+        - TLS_AES_128_GCM_SHA256
+        - TLS_AES_256_GCM_SHA384
+        - TLS_CHACHA20_POLY1305_SHA256
+      curvePreferences:
+        - secp521r1
+        - secp384r1
+    mintls13:
+      minVersion: VersionTLS13
+
+http:
+  middlewares:
+    secHeaders:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        frameDeny: true
+        sslRedirect: true
+        # HSTS Configuration
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        customFrameOptionsValue: "SAMEORIGIN"
+        forceSTSHeader: true
+        referrerPolicy: "no-referrer"
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
