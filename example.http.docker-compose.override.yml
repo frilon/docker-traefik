@@ -1,6 +1,15 @@
 services:
   traefik:
     labels:
+      # Enable Traefik
+      - traefik.enable=true
+      # Set Network to use
+      - traefik.docker.network=traefik_ext
+      # Load dynamic config
+      - traefik.http.routers.traefik_https.middlewares=secHeaders@file,def-compress
+      # Enable gzip compression
+      - traefik.http.middlewares.def-compress.compress=true
+
       - traefik.http.routers.traefik_http.entrypoints=traefik_http
       - traefik.http.routers.traefik_http.rule=Host(`${CUSTOM_HOSTNAME}`) && PathPrefix(`/api`) || PathPrefix(`/dashboard`)
       - traefik.http.routers.traefik_http.service=api@internal

@@ -9,6 +9,12 @@ services:
       - --api.insecure=false
       - --api.dashboard=true
       - --api.debug=true
+      # (Optional) Enable Prometheus Metrics
+      #- --metrics.prometheus=true
+      #- --metrics.prometheus.addEntryPointsLabels=true
+      #- --metrics.prometheus.addrouterslabels=true
+      #- --metrics.prometheus.addServicesLabels=true
+      #- --metrics.prometheus.entryPoint=websecure
       # We are using Docker
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
@@ -20,6 +26,11 @@ services:
       - --entrypoints.websecure.address=:443
       # Listen on port 8080 (traefik Dashboard)
       - --entrypoints.traefik_https.address=:8080
+      # Watch dynamic configuration file
+      - --providers.file.directory=/conf
+      - --providers.file.watch=true
+      # Enable Access Log
+      - --accesslog.filepath=/var/log/www/access.log
       # Automaticly redirect from http to https
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
@@ -33,24 +44,44 @@ services:
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
       # (Optional) Use testing server before receiving the productive ssl certificate
       - --certificatesresolvers.letsencrypt.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --entrypoints.web.http.tls.domains[0].main=${CUSTOM_HOSTNAME}
       ################  END SSL configuration  ################
 
-      - --entrypoints.web.http.tls.domains[0].main=${CUSTOM_HOSTNAME}
-      # Enable Access Log
-      - --accesslog.filepath=/var/log/www/access.log
+
     volumes:
       # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      # LetsEncrypt Configuration Storage
-      - ./ssl:/ssl
+      # Dynamic configuration files
+      - ./conf:/conf
       # Enable Access Log
       - ./logs/:/var/log/www/
+      # LetsEncrypt Configuration Storage
+      - ./ssl:/ssl
     labels:
+      # Enable Traefik
       - traefik.enable=true
+      # Set Network to use
       - traefik.docker.network=traefik_ext
+      # Load dynamic config
+      - traefik.http.routers.traefik_https.middlewares=secHeaders@file,def-compress
+      # Enable gzip compression
+      - traefik.http.middlewares.def-compress.compress=true
 
       - traefik.http.routers.traefik_https.entrypoints=traefik_https
       - traefik.http.routers.traefik_https.rule=Host(`${CUSTOM_HOSTNAME}`) && PathPrefix(`/api`) || PathPrefix(`/dashboard`)
       - traefik.http.routers.traefik_https.service=api@internal
       - traefik.http.routers.traefik_https.tls=true
       - traefik.http.routers.traefik_https.tls.certResolver=letsencrypt
+      #
+      # (Optional) Enable Prometheus Metrics
+      #- traefik.http.routers.traefik_metrics.entrypoints=websecure
+      #- traefik.http.routers.traefik_metrics.rule=Host(`${CUSTOM_HOSTNAME}`) && PathPrefix(`/metrics`)
+      #- traefik.http.routers.traefik_metrics.tls=true
+      #- traefik.http.routers.traefik_metrics.tls.certResolver=cloudflare
+      #- traefik.http.routers.traefik_metrics.middlewares=traefik-auth
+      #
+      # (Optional) Enable Basic-Auth
+      # Username: admin
+      # Password: verySafePassword
+      # Encrypt Password via 'echo $(htpasswd -nB nadmin) | sed -e s/\\$/\\$\\$/g'
+      #- traefik.http.middlewares.traefik-auth.basicauth.users=admin:ENCRYPTED_verySafePassword
