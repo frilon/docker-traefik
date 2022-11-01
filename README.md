@@ -7,6 +7,8 @@
 1. Clone this repository
 1. create a local `.env` file</br>
     `cp .env-example .env`
+1. Create the traefik network</br>
+    `docker network create traefik_ext` 
 1. Start the service via `docker-compose up -d`
 1. Visit the dashboard to see if it is up and running
    (default) [http://localhost:8080/dashbaord/](http://localhost:8080/dashbaord/)</br>
