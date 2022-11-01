@@ -7,7 +7,7 @@ tls:
   options:
     default:
       minVersion: VersionTLS12
-      sniStrict : true
+      sniStrict: true
       cipherSuites:
         - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
         - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
@@ -41,3 +41,4 @@ http:
         referrerPolicy: "no-referrer"
         customRequestHeaders:
           X-Forwarded-Proto: "https"
+          #X-Forwarded-Host:
