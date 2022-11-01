@@ -6,9 +6,9 @@ services:
       # Set Network to use
       - traefik.docker.network=traefik_ext
       # Load dynamic config
-      - traefik.http.routers.traefik_https.middlewares=secHeaders@file,def-compress
+      - traefik.http.routers.traefik_https.middlewares=secHeaders@file,gzip
       # Enable gzip compression
-      - traefik.http.middlewares.def-compress.compress=true
+      - traefik.http.middlewares.gzip.compress=true
 
       - traefik.http.routers.traefik_http.entrypoints=traefik_http
       - traefik.http.routers.traefik_http.rule=Host(`${CUSTOM_HOSTNAME}`) && PathPrefix(`/api`) || PathPrefix(`/dashboard`)
