@@ -1,9 +1,4 @@
 tls:
-  #certificates:
-  #  - certFile: /certs/xyzcdn.xyz.crt
-  #    keyFile: /certs/xyzcdn.xyz.key
-  #  - certFile: /certs/geschke.net.crt
-  #    keyFile: /certs/geschke.net.key
   options:
     default:
       minVersion: VersionTLS12
@@ -31,7 +26,6 @@ http:
         browserXssFilter: true
         contentTypeNosniff: true
         frameDeny: true
-        sslRedirect: true
         # HSTS Configuration
         stsIncludeSubdomains: true
         stsPreload: true
