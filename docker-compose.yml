@@ -23,7 +23,7 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       # (Optional) Set default hostname if not given explicitly
-      - "--providers.docker.defaultRule=Host(${CUSTOM_HOSTNAME})"
+      - "--providers.docker.defaultRule=Host(`${CUSTOM_HOSTNAME}`)"
       # Listen on port 80 (http)
       - "--entrypoints.web.address=:80"
       # Listen on port 8080 (traefik Dashboard)
@@ -65,7 +65,7 @@ services:
       # Enable gzip compression
       - "traefik.http.middlewares.gzip.compress=true"
       # Load dynamic config
-      - "traefik.http.routers.dashboards.middlewares=secHeaders@file,gzip"
+      - "traefik.http.routers.dashboards.middlewares=gzip"
       # Username: nadmin
       # Password: EnterPasswordHere
       # Encrypt Password via 'echo $(htpasswd -nB nadmin) | sed -e s/\\$/\\$\\$/g'
@@ -73,7 +73,7 @@ services:
       #- "traefik.http.middlewares.traefik-auth.basicauth.users=nadmin:EnterEncryptedPasswordHere"
     networks:
       - "traefik_ext"
-      - "traefik_int"
+      #- "traefik_int"
 
   whoami:
     image: "traefik/whoami"
@@ -104,5 +104,5 @@ networks:
   traefik_ext:
     external: true
   # docker network create traefik_int --internal
-  traefik_int:
-    external: true
+  #traefik_int:
+  #  external: true
