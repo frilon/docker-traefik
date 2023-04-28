@@ -66,5 +66,5 @@ check_requirements
 main "$@"
 
 ### Manually export:
-# jq -r '.cloudflare.Certificates[] | select(.domain.main=="fammoldenhauer.de") | .certificate' tools/acme.json | base64 -d
-# jq -r '.cloudflare.Certificates[] | select(.domain.main=="fammoldenhauer.de") | .key' tools/acme.json | base64 -d
+# jq -r '.cloudflare.Certificates[] | select(.domain.main=="mydomain.tld") | .certificate' tools/acme.json | base64 -d
+# jq -r '.cloudflare.Certificates[] | select(.domain.main=="mydomain.tld") | .key' tools/acme.json | base64 -d

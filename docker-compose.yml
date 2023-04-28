@@ -71,7 +71,6 @@ services:
       # Load dynamic config
       - "traefik.http.routers.traefik-dashbaord.middlewares=default@file,basic-auth@file"
       - "traefik.http.routers.traefik-dashbaord.entrypoints=traefik-dashbaord"
-      # - "traefik.http.routers.traefik-dashbaord.rule=Host(`${CUSTOM_HOSTNAME}`) && PathPrefix(`/api`) || PathPrefix(`/dashboard`)"
       - "traefik.http.routers.traefik-dashbaord.rule=Host(`traefik.${CUSTOM_HOSTNAME}`) && PathPrefix(`/api`,`/dashboard`)"
       - "traefik.http.routers.traefik-dashbaord.tls=true"
       - "traefik.http.routers.traefik-dashbaord.tls.certResolver=cloudflare"
