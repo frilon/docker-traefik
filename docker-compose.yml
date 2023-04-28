@@ -1,22 +1,32 @@
-version: "3"
-
+version: "3.8"
 services:
   traefik:
-    # The official v2 Traefik docker image
     image: traefik:latest
     container_name: traefik
     restart: always
     env_file: .env
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    networks:
+      - "traefik_ext"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Dynamic configuration files
+      - ./conf:/conf
+      # Enable Access Log
+      - ./logs/:/var/log/www/
+      # LetsEncrypt Configuration Storage
+      - ./ssl:/ssl
     command:
-      # Send usage statistics (or not)
-      - "--global.sendAnonymousUsage=false"
       # By default, the level is set to ERROR. Alternative logging levels are 
       # DEBUG, PANIC, FATAL, ERROR, WARN, and INFO.
       - "--log.level=WARN"
-      # Enable Access Log
-      - "--accesslog.filepath=/var/log/www/access.log"
+      - "--global.sendAnonymousUsage=false"
       # Enable Dashboard
-      - "--api.insecure=true"
+      - "--api.insecure=false"
       - "--api.dashboard=true"
       - "--api.debug=true"
       # We are using Docker
@@ -26,77 +36,67 @@ services:
       - "--providers.docker.defaultRule=Host(`${CUSTOM_HOSTNAME}`)"
       # Listen on port 80 (http)
       - "--entrypoints.web.address=:80"
+      # Listen on port 443 (https)
+      - "--entrypoints.websecure.address=:443"
       # Listen on port 8080 (traefik Dashboard)
-      #- "--entrypoints.dashboard.address=:8080"
+      - "--entrypoints.traefik-dashbaord.address=:8080"
       # Watch dynamic configuration file
       - "--providers.file.directory=/conf"
       - "--providers.file.watch=true"
-    ports:
-      # The HTTP port
-      - target: 80
-        published: 80
-        protocol: tcp
-        mode: host
-      # The HTTPS port
-      - target: 443
-        published: 443
-        protocol: tcp
-        mode: host
-      # The Web UI (enabled by --api.insecure=true)
-      - target: 8080
-        published: 8080
-        protocol: tcp
-        mode: host
-      #- "80:80"
-      #- "443:443"
-      #- "8080:8080"
-    volumes:
-      # So that Traefik can listen to the Docker events
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      # Dynamic configuration files
-      - "./conf:/conf"
       # Enable Access Log
-      - "./logs/:/var/log/www/"
+      - "--accesslog.filepath=/var/log/www/access.log"
+      # Automaticly redirect from http to https
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      ################ START SSL configuration ################
+      # ---------> Cloudflare <---------
+      # DNS challenge via Cloudflare
+      - "--certificatesresolvers.cloudflare.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.cloudflare.acme.storage=/ssl/acme.json"
+      - "--certificatesresolvers.cloudflare.acme.dnsChallenge.provider=cloudflare"
+      - "--certificatesresolvers.cloudflare.acme.dnsChallenge.delayBeforeCheck=60"
+      - "--certificatesresolvers.cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53"
+      # (Optional) Use testing server before receiving the productive ssl certificate
+      #- --certificatesresolvers.cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+      - "--entrypoints.websecure.http.tls.domains[0].main=${CUSTOM_HOSTNAME}"
+      # (Optional) Use only, if you are able to receive a wildcard ssl certificate
+      - "--entrypoints.websecure.http.tls.domains[0].main=*.${CUSTOM_HOSTNAME}"
+      # --------------------------------
+      ################  END SSL configuration  ################
     labels:
       # Enable Traefik
       - "traefik.enable=true"
       # Set Network to use
-      #- "traefik.docker.network=traefik_ext,traefik_int"
-      # Enable gzip compression
-      - "traefik.http.middlewares.gzip.compress=true"
+      - "traefik.docker.network=traefik_ext"
       # Load dynamic config
-      - "traefik.http.routers.dashboards.middlewares=gzip"
-      # Username: nadmin
-      # Password: EnterPasswordHere
-      # Encrypt Password via 'echo $(htpasswd -nB nadmin) | sed -e s/\\$/\\$\\$/g'
-      #- "traefik.http.routers.dashboards.middlewares=traefik-auth"
-      #- "traefik.http.middlewares.traefik-auth.basicauth.users=nadmin:EnterEncryptedPasswordHere"
-    networks:
-      - "traefik_ext"
-      #- "traefik_int"
+      - "traefik.http.routers.traefik-dashbaord.middlewares=default@file,basic-auth@file"
+      - "traefik.http.routers.traefik-dashbaord.entrypoints=traefik-dashbaord"
+      # - "traefik.http.routers.traefik-dashbaord.rule=Host(`${CUSTOM_HOSTNAME}`) && PathPrefix(`/api`) || PathPrefix(`/dashboard`)"
+      - "traefik.http.routers.traefik-dashbaord.rule=Host(`traefik.${CUSTOM_HOSTNAME}`) && PathPrefix(`/api`,`/dashboard`)"
+      - "traefik.http.routers.traefik-dashbaord.tls=true"
+      - "traefik.http.routers.traefik-dashbaord.tls.certResolver=cloudflare"
+      - "traefik.http.routers.traefik-dashbaord.service=api@internal"
 
   whoami:
-    image: "traefik/whoami"
-    container_name: "whoami"
-    restart: "unless-stopped"
+    image: traefik/whoami
+    container_name: whoami
+    restart: unless-stopped
     depends_on:
-      - "traefik"
+      - traefik
+    environment:
+      - "CUSTOM_HOSTNAME=whoami.fammoldenhauer.de"
     labels:
       # Enable Traefik
       - "traefik.enable=true"
       # Set Network to use
-      #- "traefik.docker.network=traefik_ext"
-      # Enable gzip compression
-      - "traefik.http.middlewares.gzip.compress=true"
+      - "traefik.docker.network=traefik_ext"
       # Load dynamic config
-      #- "traefik.http.routers.whoami.middlewares=secHeaders@file,gzip"
-      - "traefik.http.routers.whoami.middlewares=gzip"
-      - "traefik.http.routers.whoami.entrypoints=web"
-      #- "traefik.http.routers.whoami.entrypoints=websecure"
-      - "traefik.http.routers.whoami.rule=Host(`whoami.${CUSTOM_HOSTNAME}`)"
-      #- "traefik.http.routers.whoami.tls.certresolver=le_http_challenge"
+      - "traefik.http.routers.whoami.middlewares=default@file"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.rule=Host(`${CUSTOM_HOSTNAME}`)"
+      - "traefik.http.routers.whoami.tls=true"
     networks:
-      - "traefik_ext"
+      - traefik_ext
 
 # Create networks manually before starting this compose
 networks:
