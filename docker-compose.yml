@@ -83,7 +83,7 @@ services:
     depends_on:
       - traefik
     environment:
-      - "CUSTOM_HOSTNAME=whoami.fammoldenhauer.de"
+      - "CUSTOM_HOSTNAME=whoami.domain.tld"
     labels:
       # Enable Traefik
       - "traefik.enable=true"
